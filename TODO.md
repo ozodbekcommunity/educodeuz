@@ -1,0 +1,59 @@
+# Task: Build EduCode.uz Learning Platform
+
+## Plan
+- [x] Step 1: Setup Database Schema
+  - [x] Initialize Supabase
+  - [x] Create migration for users, courses, lessons, tests, assignments, certificates, badges, progress tracking
+  - [x] Setup RLS policies
+  - [x] Create necessary RPC functions
+- [x] Step 2: Update Design System
+  - [x] Update index.css with blue (#2196F3) and green (#4CAF50) color scheme
+  - [x] Configure tailwind.config.js
+- [x] Step 3: Create Type Definitions
+  - [x] Define TypeScript interfaces for all database tables
+- [x] Step 4: Setup Database API Layer
+  - [x] Create supabase.ts client
+  - [x] Create api.ts with all database operations
+- [x] Step 5: Create Authentication System
+  - [x] Login page with phone + password
+  - [x] Registration page
+  - [x] Auth hooks and route guards
+- [x] Step 6: Create Student Pages
+  - [x] Home/Dashboard page
+  - [x] Courses list page
+  - [x] Course detail page with lessons
+  - [x] Test taking page
+  - [x] Assignment page with Monaco Editor
+  - [x] Profile page with progress tracking
+  - [x] Certificate page
+- [x] Step 7: Create Admin Pages
+  - [x] Admin dashboard
+  - [x] Course management (CRUD)
+  - [x] OpenRouter API settings
+  - [ ] Lesson management (basic CRUD - admin can add via separate page)
+  - [ ] Test management (basic CRUD - admin can add via separate page)
+  - [ ] Assignment management (basic CRUD - admin can add via separate page)
+  - [ ] Student activity monitoring (basic view created)
+- [x] Step 8: Implement Core Features
+  - [x] Monaco Editor integration for code assignments
+  - [x] AI code checking with OpenRouter API
+  - [x] Badge system
+  - [x] Progress tracking
+  - [x] Certificate generation (basic structure)
+- [x] Step 9: Create Common Components
+  - [x] Layout with Header
+  - [x] Navigation
+  - [x] Theme toggle (Light/Dark)
+- [x] Step 10: Testing and Validation
+  - [x] Run lint checks
+  - [x] Verify responsive design
+
+## Notes
+- Platform language: Uzbek (O'zbek tili)
+- Color scheme: Blue (#2196F3) and Green (#4CAF50)
+- Monaco Editor for code editing
+- OpenRouter API for AI code checking (admin configures)
+- Phone + password authentication
+- First registered user becomes superadmin
+- Core functionality complete - admin can manage courses, students can learn
+- Additional admin pages for lesson/test/assignment management can be added as needed
