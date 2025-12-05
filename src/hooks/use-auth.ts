@@ -49,12 +49,20 @@ export function useAuth() {
   const isAdmin = profile?.role === 'admin';
   const isStudent = profile?.role === 'student';
 
+  const refreshProfile = async () => {
+    if (user?.id) {
+      const userProfile = await api.profiles.getProfile(user.id);
+      setProfile(userProfile);
+    }
+  };
+
   return {
     user,
     profile,
     loading,
     isAdmin,
     isStudent,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    refreshProfile
   };
 }

@@ -79,6 +79,17 @@ export const api = {
       return data as Profile | null;
     },
 
+    update: async (userId: string, updates: Partial<Profile>) => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId)
+        .select()
+        .maybeSingle();
+      if (error) throw error;
+      return data as Profile | null;
+    },
+
     updateProfile: async (userId: string, updates: Partial<Profile>) => {
       const { data, error } = await supabase
         .from('profiles')

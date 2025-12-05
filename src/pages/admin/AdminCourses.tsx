@@ -54,6 +54,15 @@ export default function AdminCourses() {
       return;
     }
 
+    if (!profile?.id) {
+      toast({
+        title: 'Xato',
+        description: 'Foydalanuvchi ma\'lumotlari topilmadi',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     try {
       if (editingCourse) {
         await api.courses.update(editingCourse.id, formData);
@@ -64,7 +73,7 @@ export default function AdminCourses() {
       } else {
         await api.courses.create({
           ...formData,
-          created_by: profile?.id || null
+          created_by: profile.id
         });
         toast({
           title: 'Muvaffaqiyatli',
@@ -76,6 +85,7 @@ export default function AdminCourses() {
       resetForm();
       fetchCourses();
     } catch (error: any) {
+      console.error('Course creation error:', error);
       toast({
         title: 'Xato',
         description: error.message || 'Kursni saqlashda xatolik yuz berdi',

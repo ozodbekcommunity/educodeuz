@@ -1,22 +1,40 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { api } from '@/db/api';
+import { useToast } from '@/hooks/use-toast';
 import type { StudentBadge, Badge as BadgeType, Course, StudentProgress } from '@/types';
-import { User, Award, BookOpen, TrendingUp } from 'lucide-react';
+import { User, Award, BookOpen, TrendingUp, Edit } from 'lucide-react';
 
 export default function Profile() {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
+  const { toast } = useToast();
   const [badges, setBadges] = useState<(StudentBadge & { badge: BadgeType })[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [progress, setProgress] = useState<StudentProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: '',
+    phone: ''
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       if (!profile) return;
+
+      // Set form data from profile
+      setFormData({
+        full_name: profile.full_name,
+        phone: profile.phone || ''
+      });
 
       try {
         const [badgesData, coursesData] = await Promise.all([
@@ -43,6 +61,46 @@ export default function Profile() {
     fetchData();
   }, [profile]);
 
+  const handleEditProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.full_name.trim()) {
+      toast({
+        title: 'Xato',
+        description: 'To\'liq ismni kiriting',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!profile?.id) return;
+
+    setSaving(true);
+    try {
+      await api.profiles.update(profile.id, {
+        full_name: formData.full_name,
+        phone: formData.phone
+      });
+
+      toast({
+        title: 'Muvaffaqiyatli',
+        description: 'Profil yangilandi'
+      });
+
+      setEditDialogOpen(false);
+      await refreshProfile();
+    } catch (error: any) {
+      console.error('Profile update error:', error);
+      toast({
+        title: 'Xato',
+        description: error.message || 'Profilni yangilashda xatolik yuz berdi',
+        variant: 'destructive'
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -59,14 +117,60 @@ export default function Profile() {
     <div className="container py-8 space-y-8">
       <Card>
         <CardHeader>
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center">
-              <User className="w-8 h-8 text-primary-foreground" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center">
+                <User className="w-8 h-8 text-primary-foreground" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl">{profile?.full_name}</CardTitle>
+                <CardDescription>{profile?.phone}</CardDescription>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-2xl">{profile?.full_name}</CardTitle>
-              <CardDescription>{profile?.phone}</CardDescription>
-            </div>
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Tahrirlash
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Profilni tahrirlash</DialogTitle>
+                  <DialogDescription>
+                    Shaxsiy ma'lumotlaringizni yangilang
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleEditProfile} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="full_name">To'liq ism *</Label>
+                    <Input
+                      id="full_name"
+                      value={formData.full_name}
+                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                      placeholder="Ismingizni kiriting"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telefon raqam</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="+998901234567"
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
+                      Bekor qilish
+                    </Button>
+                    <Button type="submit" disabled={saving}>
+                      {saving ? 'Saqlanmoqda...' : 'Saqlash'}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </CardHeader>
       </Card>
