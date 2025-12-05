@@ -410,7 +410,7 @@ BEGIN
   INSERT INTO profiles (id, phone, full_name, role)
   VALUES (
     NEW.id,
-    NEW.phone,
+    COALESCE(NEW.raw_user_meta_data->>'phone', NEW.phone, ''),
     COALESCE(NEW.raw_user_meta_data->>'full_name', 'User'),
     CASE WHEN user_count = 0 THEN 'admin'::user_role ELSE 'student'::user_role END
   );
@@ -418,12 +418,11 @@ BEGIN
 END;
 $$;
 
--- Create trigger on auth.users
-DROP TRIGGER IF EXISTS on_auth_user_confirmed ON auth.users;
-CREATE TRIGGER on_auth_user_confirmed
-  AFTER UPDATE ON auth.users
+-- Create trigger on auth.users (for INSERT as well)
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
   FOR EACH ROW
-  WHEN (OLD.confirmed_at IS NULL AND NEW.confirmed_at IS NOT NULL)
   EXECUTE FUNCTION handle_new_user();
 
 -- Create trigger function for updated_at

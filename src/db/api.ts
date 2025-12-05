@@ -19,12 +19,17 @@ import type {
 export const api = {
   auth: {
     signUp: async (phone: string, password: string, fullName: string) => {
+      // Telefon raqamni email formatiga o'tkazish (username@miaoda.com)
+      const username = phone.replace(/[^0-9]/g, '');
+      const email = `${username}@miaoda.com`;
+      
       const { data, error } = await supabase.auth.signUp({
-        phone,
+        email,
         password,
         options: {
           data: {
-            full_name: fullName
+            full_name: fullName,
+            phone: phone
           }
         }
       });
@@ -33,8 +38,12 @@ export const api = {
     },
 
     signIn: async (phone: string, password: string) => {
+      // Telefon raqamni email formatiga o'tkazish
+      const username = phone.replace(/[^0-9]/g, '');
+      const email = `${username}@miaoda.com`;
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        phone,
+        email,
         password
       });
       if (error) throw error;

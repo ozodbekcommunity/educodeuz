@@ -10,6 +10,8 @@ import Certificates from './pages/Certificates';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminCourses from './pages/admin/AdminCourses';
 import AdminLessons from './pages/admin/AdminLessons';
+import AdminTestForm from './pages/admin/AdminTestForm';
+import AdminAssignmentForm from './pages/admin/AdminAssignmentForm';
 import AdminSettings from './pages/admin/AdminSettings';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
@@ -126,6 +128,30 @@ const routes: RouteConfig[] = [
     element: (
       <ProtectedRoute requireAdmin>
         <AdminLessons />
+      </ProtectedRoute>
+    ),
+    visible: false,
+    requireAuth: true,
+    requireAdmin: true
+  },
+  {
+    name: 'Admin Test Form',
+    path: '/admin/lessons/:lessonId/test',
+    element: (
+      <ProtectedRoute requireAdmin>
+        <AdminTestForm />
+      </ProtectedRoute>
+    ),
+    visible: false,
+    requireAuth: true,
+    requireAdmin: true
+  },
+  {
+    name: 'Admin Assignment Form',
+    path: '/admin/lessons/:lessonId/assignment',
+    element: (
+      <ProtectedRoute requireAdmin>
+        <AdminAssignmentForm />
       </ProtectedRoute>
     ),
     visible: false,

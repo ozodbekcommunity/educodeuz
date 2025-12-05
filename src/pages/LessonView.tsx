@@ -117,7 +117,7 @@ export default function LessonView() {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className={`grid w-full ${hasTest && hasAssignment ? 'grid-cols-3' : hasTest || hasAssignment ? 'grid-cols-2' : 'grid-cols-1'}`}>
           <TabsTrigger value="content">
             <BookOpen className="w-4 h-4 mr-2" />
             Dars matni
