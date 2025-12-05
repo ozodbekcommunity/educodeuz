@@ -18,6 +18,7 @@ export default function AdminCourses() {
   const { toast } = useToast();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [formData, setFormData] = useState({
@@ -63,6 +64,7 @@ export default function AdminCourses() {
       return;
     }
 
+    setSubmitting(true);
     try {
       if (editingCourse) {
         await api.courses.update(editingCourse.id, formData);
@@ -91,6 +93,8 @@ export default function AdminCourses() {
         description: error.message || 'Kursni saqlashda xatolik yuz berdi',
         variant: 'destructive'
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -149,72 +153,71 @@ export default function AdminCourses() {
           <h1 className="text-3xl font-bold">Kurslar boshqaruvi</h1>
           <p className="text-muted-foreground">Kurslarni yaratish va tahrirlash</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => {
-          setDialogOpen(open);
-          if (!open) resetForm();
-        }}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Yangi kurs
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{editingCourse ? 'Kursni tahrirlash' : 'Yangi kurs yaratish'}</DialogTitle>
-              <DialogDescription>
-                Kurs ma'lumotlarini kiriting
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Kurs nomi *</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Masalan: JavaScript asoslari"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Tavsif</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Kurs haqida qisqacha ma'lumot"
-                  rows={4}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="thumbnail">Rasm URL</Label>
-                <Input
-                  id="thumbnail"
-                  value={formData.thumbnail}
-                  onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
-                  placeholder="https://example.com/image.jpg"
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="published"
-                  checked={formData.is_published}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
-                />
-                <Label htmlFor="published">Kursni nashr qilish</Label>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                  Bekor qilish
-                </Button>
-                <Button type="submit">
-                  {editingCourse ? 'Yangilash' : 'Yaratish'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setDialogOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Yangi kurs
+        </Button>
       </div>
+
+      <Dialog open={dialogOpen} onOpenChange={(open) => {
+        setDialogOpen(open);
+        if (!open) resetForm();
+      }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editingCourse ? 'Kursni tahrirlash' : 'Yangi kurs yaratish'}</DialogTitle>
+            <DialogDescription>
+              Kurs ma'lumotlarini kiriting
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Kurs nomi *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Masalan: JavaScript asoslari"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Tavsif</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Kurs haqida qisqacha ma'lumot"
+                rows={4}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="thumbnail">Rasm URL</Label>
+              <Input
+                id="thumbnail"
+                value={formData.thumbnail}
+                onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="published"
+                checked={formData.is_published}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
+              />
+              <Label htmlFor="published">Kursni nashr qilish</Label>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                Bekor qilish
+              </Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? 'Yuklanmoqda...' : (editingCourse ? 'Yangilash' : 'Yaratish')}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {courses.length === 0 ? (
         <Card>
