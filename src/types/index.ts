@@ -12,6 +12,7 @@ export interface Profile {
   phone: string | null;
   full_name: string;
   role: UserRole;
+  is_banned: boolean;
   created_at: string;
 }
 

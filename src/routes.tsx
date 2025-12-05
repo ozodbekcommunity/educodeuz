@@ -13,6 +13,7 @@ import AdminLessons from './pages/admin/AdminLessons';
 import AdminTestForm from './pages/admin/AdminTestForm';
 import AdminAssignmentForm from './pages/admin/AdminAssignmentForm';
 import AdminSettings from './pages/admin/AdminSettings';
+import AdminStudents from './pages/admin/AdminStudents';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 interface RouteConfig {
@@ -164,6 +165,18 @@ const routes: RouteConfig[] = [
     element: (
       <ProtectedRoute requireAdmin>
         <AdminSettings />
+      </ProtectedRoute>
+    ),
+    visible: false,
+    requireAuth: true,
+    requireAdmin: true
+  },
+  {
+    name: 'Admin Students',
+    path: '/admin/students',
+    element: (
+      <ProtectedRoute requireAdmin>
+        <AdminStudents />
       </ProtectedRoute>
     ),
     visible: false,

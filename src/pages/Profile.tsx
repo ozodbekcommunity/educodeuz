@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { api } from '@/db/api';
 import { useToast } from '@/hooks/use-toast';
 import type { StudentBadge, Badge as BadgeType, Course, StudentProgress } from '@/types';
-import { User, Award, BookOpen, TrendingUp, Edit } from 'lucide-react';
+import { User, Award, BookOpen, TrendingUp, Edit, Lock } from 'lucide-react';
 
 export default function Profile() {
   const { profile, refreshProfile } = useAuth();
@@ -20,10 +20,16 @@ export default function Profile() {
   const [progress, setProgress] = useState<StudentProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     phone: ''
+  });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   });
 
   useEffect(() => {
@@ -101,6 +107,74 @@ export default function Profile() {
     }
   };
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast({
+        title: 'Xato',
+        description: 'Barcha maydonlarni to\'ldiring',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast({
+        title: 'Xato',
+        description: 'Yangi parol kamida 6 ta belgidan iborat bo\'lishi kerak',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: 'Xato',
+        description: 'Yangi parollar mos kelmayapti',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const result = await api.profiles.changeOwnPassword(
+        passwordData.currentPassword,
+        passwordData.newPassword
+      );
+
+      if (result.success) {
+        toast({
+          title: 'Muvaffaqiyatli',
+          description: result.message || 'Parol o\'zgartirildi'
+        });
+
+        setPasswordDialogOpen(false);
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+      } else {
+        toast({
+          title: 'Xato',
+          description: result.message || 'Parolni o\'zgartirishda xatolik yuz berdi',
+          variant: 'destructive'
+        });
+      }
+    } catch (error: any) {
+      console.error('Password change error:', error);
+      toast({
+        title: 'Xato',
+        description: error.message || 'Parolni o\'zgartirishda xatolik yuz berdi',
+        variant: 'destructive'
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -127,53 +201,124 @@ export default function Profile() {
                 <CardDescription>{profile?.phone}</CardDescription>
               </div>
             </div>
-            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Tahrirlash
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Profilni tahrirlash</DialogTitle>
-                  <DialogDescription>
-                    Shaxsiy ma'lumotlaringizni yangilang
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleEditProfile} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="full_name">To'liq ism *</Label>
-                    <Input
-                      id="full_name"
-                      value={formData.full_name}
-                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                      placeholder="Ismingizni kiriting"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Telefon raqam</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="+998901234567"
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
-                      Bekor qilish
-                    </Button>
-                    <Button type="submit" disabled={saving}>
-                      {saving ? 'Saqlanmoqda...' : 'Saqlash'}
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm" onClick={() => setPasswordDialogOpen(true)}>
+                <Lock className="w-4 h-4 mr-2" />
+                Parolni o'zgartirish
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => {
+                setFormData({
+                  full_name: profile?.full_name || '',
+                  phone: profile?.phone || ''
+                });
+                setEditDialogOpen(true);
+              }}>
+                <Edit className="w-4 h-4 mr-2" />
+                Tahrirlash
+              </Button>
+            </div>
           </div>
         </CardHeader>
       </Card>
+
+      {/* Edit Profile Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Profilni tahrirlash</DialogTitle>
+            <DialogDescription>
+              Shaxsiy ma'lumotlaringizni yangilang
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEditProfile} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="full_name">To'liq ism *</Label>
+              <Input
+                id="full_name"
+                value={formData.full_name}
+                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                placeholder="Ismingizni kiriting"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Telefon raqam</Label>
+              <Input
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="+998901234567"
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
+                Bekor qilish
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? 'Saqlanmoqda...' : 'Saqlash'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Password Dialog */}
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Parolni o'zgartirish</DialogTitle>
+            <DialogDescription>
+              Yangi parol kiriting
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="current_password">Joriy parol *</Label>
+              <Input
+                id="current_password"
+                type="password"
+                value={passwordData.currentPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                placeholder="Joriy parolingizni kiriting"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_password">Yangi parol *</Label>
+              <Input
+                id="new_password"
+                type="password"
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                placeholder="Yangi parol (kamida 6 ta belgi)"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm_password">Parolni tasdiqlang *</Label>
+              <Input
+                id="confirm_password"
+                type="password"
+                value={passwordData.confirmPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                placeholder="Yangi parolni qayta kiriting"
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={() => {
+                setPasswordDialogOpen(false);
+                setPasswordData({
+                  currentPassword: '',
+                  newPassword: '',
+                  confirmPassword: ''
+                });
+              }}>
+                Bekor qilish
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? 'O\'zgartirilmoqda...' : 'O\'zgartirish'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid gap-6 md:grid-cols-3">
         <Card>

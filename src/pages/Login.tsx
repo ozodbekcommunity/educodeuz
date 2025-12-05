@@ -29,7 +29,24 @@ export default function Login() {
 
     setLoading(true);
     try {
-      await api.auth.signIn(phone, password);
+      const result = await api.auth.signIn(phone, password);
+      
+      // Foydalanuvchi profilini tekshirish
+      if (result?.user?.id) {
+        const profile = await api.profiles.getProfile(result.user.id);
+        
+        // Agar foydalanuvchi bloklangan bo'lsa
+        if (profile?.is_banned) {
+          await api.auth.signOut();
+          toast({
+            title: 'Kirish rad etildi',
+            description: 'Sizning hisobingiz bloklangan. Iltimos, admin bilan bog\'laning.',
+            variant: 'destructive'
+          });
+          return;
+        }
+      }
+      
       toast({
         title: 'Muvaffaqiyatli',
         description: 'Tizimga muvaffaqiyatli kirdingiz'

@@ -108,6 +108,33 @@ export const api = {
         .order('created_at', { ascending: false });
       if (error) throw error;
       return Array.isArray(data) ? data : [];
+    },
+
+    changeOwnPassword: async (currentPassword: string, newPassword: string) => {
+      const { data, error } = await supabase.rpc('change_own_password', {
+        current_password: currentPassword,
+        new_password: newPassword
+      });
+      if (error) throw error;
+      return data;
+    },
+
+    adminChangeUserPassword: async (targetUserId: string, newPassword: string) => {
+      const { data, error } = await supabase.rpc('admin_change_user_password', {
+        target_user_id: targetUserId,
+        new_password: newPassword
+      });
+      if (error) throw error;
+      return data;
+    },
+
+    adminBanUser: async (targetUserId: string, banStatus: boolean) => {
+      const { data, error } = await supabase.rpc('admin_ban_user', {
+        target_user_id: targetUserId,
+        ban_status: banStatus
+      });
+      if (error) throw error;
+      return data;
     }
   },
 
